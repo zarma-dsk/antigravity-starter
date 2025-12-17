@@ -1,12 +1,14 @@
-# 🌌 ANTIGRAVITY PROTOCOL 5.0.0
-## QUICK IMPLEMENTATION GUIDE
-### 10-Step Scientific Method + Simultaneous Refactoring
+# Unified Recursive Antigravity Protocol
+
+## 🌌 Unified Recursive Antigravity Protocol PROTOCOL 5.0.0
+### QUICK IMPLEMENTATION GUIDE
+#### 10-Step Scientific Method + Simultaneous Refactoring
 
 ---
 
-## 🎯 START HERE: Real-World Example
+### 🎯 START HERE: Real-World Example
 
-### Scenario: Refactor Old Authentication + Fix Security Vulnerability
+#### Scenario: Refactor Old Authentication + Fix Security Vulnerability
 
 **Current State:**
 - Old auth code in `src/lib/auth.ts` (monolithic, no validation)
@@ -22,9 +24,9 @@
 
 ---
 
-## 📋 APPLY 10-STEP METHOD
+### 📋 APPLY 10-STEP METHOD
 
-### Step 1: OBSERVE (Read Actual Code)
+#### Step 1: OBSERVE (Read Actual Code)
 
 **File:** `src/lib/auth.ts`
 ```typescript
@@ -55,7 +57,7 @@ export async function searchUsers(query: string) {
 
 ---
 
-### Step 2: QUESTION (Identify Problems)
+#### Step 2: QUESTION (Identify Problems)
 
 **Questions to Ask:**
 1. **What's broken?** Multiple security issues
@@ -70,32 +72,32 @@ export async function searchUsers(query: string) {
 
 ---
 
-### Step 3: RESEARCH (Check Established Patterns)
+#### Step 3: RESEARCH (Check Established Patterns)
 
 **Research Tasks:**
 ```bash
-# Check Prisma documentation
-# ✅ Found: Prepared statements in Prisma
-# ✅ Found: Prisma user model pattern
+## Check Prisma documentation
+## ✅ Found: Prepared statements in Prisma
+## ✅ Found: Prisma user model pattern
 
-# Check OWASP
-# ✅ Found: Input validation is critical
-# ✅ Found: Never return password hashes
+## Check OWASP
+## ✅ Found: Input validation is critical
+## ✅ Found: Never return password hashes
 
-# Check Next.js + React docs
-# ✅ Found: Server Actions for auth
-# ✅ Found: Zod for validation
+## Check Next.js + React docs
+## ✅ Found: Server Actions for auth
+## ✅ Found: Zod for validation
 
-# Check established auth libraries
-# ✅ Found: next-auth is industry standard
-# ✅ Found: But can implement custom with best practices
+## Check established auth libraries
+## ✅ Found: next-auth is industry standard
+## ✅ Found: But can implement custom with best practices
 
-# Result: Use Prisma ORM + Zod + Next.js Server Actions
+## Result: Use Prisma ORM + Zod + Next.js Server Actions
 ```
 
 ---
 
-### Step 4: HYPOTHESIZE (Propose Solution)
+#### Step 4: HYPOTHESIZE (Propose Solution)
 
 **Solution Design:**
 ```
@@ -136,7 +138,7 @@ Response
 
 ---
 
-### Step 5: PREDICT (Identify Risks & Mitigations)
+#### Step 5: PREDICT (Identify Risks & Mitigations)
 
 **Improvements:**
 ✅ SQL injection prevented (Prisma)
@@ -159,7 +161,7 @@ Response
 
 ---
 
-### Step 6: TEST (Write Tests Locally)
+#### Step 6: TEST (Write Tests Locally)
 
 **Test File:** `tests/auth.test.ts`
 
@@ -236,21 +238,21 @@ describe('Authentication', () => {
 **Run Tests:**
 ```bash
 npm run test
-# ✅ All tests pass
+## ✅ All tests pass
 
 npm run type-check
-# ✅ No type errors
+## ✅ No type errors
 
 npm run lint
-# ✅ No linting errors
+## ✅ No linting errors
 
 npm run build
-# ✅ Production build succeeds
+## ✅ Production build succeeds
 ```
 
 ---
 
-### Step 7: ANALYZE (Review Results)
+#### Step 7: ANALYZE (Review Results)
 
 **Test Results:**
 ```
@@ -273,7 +275,7 @@ npm run build
 
 ---
 
-### Step 8: REFACTOR (Clean Up Code)
+#### Step 8: REFACTOR (Clean Up Code)
 
 **New Auth Action:** `app/(auth)/_actions.ts`
 
@@ -427,7 +429,7 @@ export type AuthInput = z.infer<typeof authSchema>
 
 ---
 
-### Step 9: DOCUMENT (Security Comments)
+#### Step 9: DOCUMENT (Security Comments)
 
 **Documentation:** Inline comments + decision log
 
@@ -469,47 +471,47 @@ export type AuthInput = z.infer<typeof authSchema>
 
 ---
 
-### Step 10: VALIDATE (Final Security Audit)
+#### Step 10: VALIDATE (Final Security Audit)
 
 **Validation Script:**
 ```bash
 #!/bin/bash
-# scripts/validate-auth-refactor.sh
+## scripts/validate-auth-refactor.sh
 
 echo "🔐 VALIDATING AUTH REFACTORING"
 echo "══════════════════════════════"
 
-# Type check
+## Type check
 npm run type-check
 [ $? -ne 0 ] && echo "❌ Type errors" && exit 1
 
-# Lint
+## Lint
 npm run lint
 [ $? -ne 0 ] && echo "❌ Linting errors" && exit 1
 
-# Tests
+## Tests
 npm run test
 [ $? -ne 0 ] && echo "❌ Tests failed" && exit 1
 
-# Build
+## Build
 npm run build
 [ $? -ne 0 ] && echo "❌ Build failed" && exit 1
 
-# Security audit
+## Security audit
 npm audit --json | jq -e '.metadata.vulnerabilities.high == 0' > /dev/null
 [ $? -ne 0 ] && echo "⚠️  Found vulnerabilities" && npm audit
 
-# Check for dangerous patterns
+## Check for dangerous patterns
 echo ""
 echo "Checking for security anti-patterns..."
 
-# Look for raw SQL
+## Look for raw SQL
 grep -r "\$queryRaw" src/ && echo "❌ Found raw SQL queries" && exit 1
 
-# Look for unvalidated inputs
+## Look for unvalidated inputs
 grep -r "function.*input.*)" src/app | grep -v "safeParse\|schema" && echo "⚠️  Found unvalidated input"
 
-# Look for password leakage
+## Look for password leakage
 grep -r "return.*user" src/app | grep -v "sanitize" && echo "⚠️  Possible password leak"
 
 echo ""
@@ -527,9 +529,9 @@ chmod +x scripts/validate-auth-refactor.sh
 
 ---
 
-## 🎯 SIMULTANEOUS TRACK EXECUTION
+### 🎯 SIMULTANEOUS TRACK EXECUTION
 
-### Track A: Architecture Refactoring (Parallel)
+#### Track A: Architecture Refactoring (Parallel)
 
 ```
 Day 1:
@@ -545,7 +547,7 @@ Day 2:
 - [ ] Update imports
 ```
 
-### Track B: Security Hardening (Parallel)
+#### Track B: Security Hardening (Parallel)
 
 ```
 Day 1:
@@ -561,7 +563,7 @@ Day 2:
 - [ ] Run npm audit ✅
 ```
 
-### Integration (Day 3)
+#### Integration (Day 3)
 
 ```
 - [ ] Merge Track A + Track B code
@@ -574,7 +576,7 @@ Day 2:
 
 ---
 
-## 📋 CHECKLIST: Before ANY Refactoring
+### 📋 CHECKLIST: Before ANY Refactoring
 
 ```
 [ ] Step 1: OBSERVE - Read actual code line by line
@@ -593,7 +595,7 @@ ONLY THEN: Code is production-ready
 
 ---
 
-## 🚀 NO DEPLOYMENT EXECUTION
+### 🚀 NO DEPLOYMENT EXECUTION
 
 **Remember:** This protocol prepares everything locally but DOES NOT push to GitHub or deploy.
 

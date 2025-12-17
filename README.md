@@ -1,8 +1,10 @@
-# Antigravity Starter Kit 🛡️
+# Unified Recursive Antigravity Protocol
+
+## Antigravity Starter Kit 🛡️
 
 This starter kit contains the core **Antigravity 5.1.1** security framework, extracted from the Jamia Website project. It works as a drop-in foundation for secure Next.js applications.
 
-## 🚀 Features
+### 🚀 Features
 
 - **7-Layer Security Architecture**: Pre-configured protection against OWASP Top 10 and advanced threats.
 - **Strict Validation**: `safe-action` wrapper with Zod integration.
@@ -15,7 +17,7 @@ This starter kit contains the core **Antigravity 5.1.1** security framework, ext
   - `npm run vet:dependency`: Supply chain security scanner.
 - **CI/CD Integrated**: GitHub Actions workflow included (`.github/workflows/ci.yml`).
 
-## 📁 Directory Structure
+### 📁 Directory Structure
 
 ```text
 .
@@ -26,7 +28,7 @@ This starter kit contains the core **Antigravity 5.1.1** security framework, ext
 └── vitest.config.ts     # Test Configuration
 ```
 
-## 🛠️ Usage
+### 🛠️ Usage
 
 1.  **Install Dependencies**:
 
@@ -47,7 +49,7 @@ This starter kit contains the core **Antigravity 5.1.1** security framework, ext
     - Define entities in `src/domain/`.
     - Use repositories in `src/data/`.
 
-## 📜 Included Scripts
+### 📜 Included Scripts
 
 - `npm run format`: Prettier
 - `npm run lint`: ESLint (Security Rules)
@@ -55,7 +57,7 @@ This starter kit contains the core **Antigravity 5.1.1** security framework, ext
 - `npm run test`: Vitest unit tests
 - `npm run vet:dependency`: Check new packages for risks
 
-## 🛡️ Security Levels
+### 🛡️ Security Levels
 
 This kit enforces:
 
