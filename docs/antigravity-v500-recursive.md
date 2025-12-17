@@ -32,28 +32,6 @@ Every action follows this rigorous framework:
 
 **Rule:** Before ANY code generation, explain all 10 steps in writing.
 
----
-
-## ⚠️ CRITICAL CORRECTIONS TO v4.7.5
-
-### What v4.7.5 Got Right
-✅ 5 Logics (Folder, Layer, Core, Code, Conceptual)
-✅ 4 Gates (Type, Lint, DB, Build)
-✅ Local-first validation
-✅ Fortress pattern (6 gates)
-
-### What v4.7.5 Missed (v5.0.0 Fixes)
-
-| Issue | v4.7.5 Problem | v5.0.0 Solution |
-|-------|---|---|
-| **"Build is God"** | Not always true. Build passes, but production fails (runtime errors) | Gate becomes: "Build + Runtime Simulation Pass" |
-| **5 Logics not defensive** | Prevents structure issues, not security issues | Add 5 Security Logics separately |
-| **Fortress Pattern incomplete** | 6 gates insufficient for networked code | Expand to 8-gate pattern + async validation |
-| **Local-only validation** | Doesn't catch network-specific issues | Add remote simulation (staging environment) |
-| **Trusts npm audit output** | Audit can miss zero-day vulnerabilities | Add: dependency originality checks + source code inspection |
-| **No simultaneous handling** | Sequential refactoring (slow) | Implement parallel track processing |
-
----
 
 ## 🛡️ PART 1: THE 5 SECURITY LOGICS (NEW)
 
