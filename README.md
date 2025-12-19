@@ -1,23 +1,33 @@
-# Unified Recursive Antigravity Protocol
+# Unified Recursive Defense Measures
 
 Antigravity Starter Kit — a research-driven, production-oriented security protocol and starter scaffold for Next.js applications (Antigravity 5.1.1). This repository packages the core defensive primitives, checks, and guidance used to harden AI-assisted codebases against hallucinations, supply-chain risks, and other AI-specific vulnerabilities.
 
 ## Quick overview
 - Purpose: Provide an opinionated, layered security scaffold for building web applications with AI-assisted development while minimizing synthetic/hallucination risks.
 - Audience: app authors, security engineers, reviewers, and maintainers who need a concise, research-backed checklist and implementation guidance.
-- Key in-repo references:
-  - docs/unified-recursive-antigravity-protocol-v511-quick-reference.md
-  - docs/unified-recursive-antigravity-protocol-v511-research-defense-matrix.md
-  - docs/unified-recursive-antigravity-protocol-v511-research-hardened.md
-  - docs/unified-recursive-antigravity-protocol-v500-implementation.md
-  - docs/unified-recursive-antigravity-protocol-v511-implementation-companion.md
-  - docs/unified-recursive-antigravity-protocol-v500-recursive.md
-  - docs/unified-recursive-antigravity-protocol-v500-visual-reference.md
-  - docs/unified-recursive-antigravity-protocol-v511-ecosystem-summary.md
-  - docs/unified-recursive-antigravity-protocol-v511-synthetic-elimination-guide.md
-  - docs/unified-recursive-antigravity-protocol-v500-attack-defense-mapping.md
-  - docs/citations-and-references.md
-  - docs/unified-recursive-antigravity-protocol-v511-citations-and-references.md
+## 📚 Documentation Ecosystem
+
+This repository contains a comprehensive documentation suite for the Unified Recursive Defense Measures, split into two main layers: the v5.0.0 Foundation and the v5.1.1 Research-Hardened Enhancement.
+
+### **Foundation Layer (v5.0.0 Base)**
+The core architectural principles and implementation patterns.
+- [**Core Protocol**](docs/unified-recursive-defense-measures-v500-recursive.md) — 40-page complete protocol specification.
+- [**Implementation Guide**](docs/unified-recursive-defense-measures-v500-implementation.md) — Real-world implementation examples.
+- [**Visual Reference**](docs/unified-recursive-defense-measures-v500-visual-reference.md) — Flowcharts and decision trees.
+- [**Attack-Defense Mapping**](docs/unified-recursive-defense-measures-v500-attack-defense-mapping.md) — Defense strategies against Radware-identified vectors.
+
+### **Enhancement Layer (v5.1.1 Research-Hardened)**
+Research-driven updates addressing synthetic vulnerabilities and advanced threats.
+- [**Ecosystem Summary**](docs/unified-recursive-defense-measures-v511-ecosystem-summary.md) — High-level overview and navigation guide (Start Here).
+- [**Research-Hardened Spec**](docs/unified-recursive-defense-measures-v511-research-hardened.md) — Complete 5.1.1 specification.
+- [**Research Defense Matrix**](docs/unified-recursive-defense-measures-v511-research-defense-matrix.md) — Mapping of 8 research papers to specific defenses.
+- [**Quick Reference**](docs/unified-recursive-defense-measures-v511-quick-reference.md) — At-a-glance checklists and vulnerability maps.
+- [**Implementation Companion**](docs/unified-recursive-defense-measures-v511-implementation-companion.md) — Code patterns, examples, and templates.
+- [**Synthetic Elimination Guide**](docs/unified-recursive-defense-measures-v511-synthetic-elimination-guide.md) — Guide to eliminating AI-generated vulnerabilities.
+
+### **References & Research**
+- [**Citations & References (v5.1.1)**](docs/unified-recursive-defense-measures-v511-citations-and-references.md) — citations specific to v5.1.1.
+- [**Citations & References (General)**](docs/unified-recursive-defense-measures-citations-and-references.md) — Complete citation database.
 
 ## Key features
 - 7-layer security architecture (defense-in-depth tailored to AI-assisted code).
@@ -47,7 +57,7 @@ Antigravity Starter Kit — a research-driven, production-oriented security prot
      - npm run typecheck
      - npm run test
 
-See docs/unified-recursive-antigravity-protocol-v511-implementation-companion.md for implementation guidance and examples.
+See docs/unified-recursive-defense-measures-v511-implementation-companion.md for implementation guidance and examples.
 
 ## Directory (high level)
 .
@@ -84,7 +94,7 @@ Protocol primitives highlighted in the repo:
 - src/lib/sanitize.ts — HTML/content sanitization
 
 For detailed mapping of vulnerabilities → defenses, see:
-- docs/unified-recursive-antigravity-protocol-v511-research-defense-matrix.md
+- docs/unified-recursive-defense-measures-v511-research-defense-matrix.md
 
 ## Quick vulnerability checklist (for reviewers)
 Before approving AI-assisted code, verify:
@@ -97,12 +107,12 @@ Before approving AI-assisted code, verify:
 - Change size small and within architectural boundaries.
 - Multi-scanner consensus achieved (typecheck, lint, semgrep/CodeQL, dynamic tests).
 
-A ready-to-use checklist is available in docs/unified-recursive-antigravity-protocol-v511-quick-reference.md.
+A ready-to-use checklist is available in docs/unified-recursive-defense-measures-v511-quick-reference.md.
 
 ## Research & references
 This protocol synthesizes findings from 8+ academic and industry sources (Radware, CSET, IEEE, CodeHalu, ISSTA, industry reports, etc.). Full citations and the bibliography live in:
-- docs/citations-and-references.md
-- docs/unified-recursive-antigravity-protocol-v511-citations-and-references.md
+- docs/unified-recursive-defense-measures-citations-and-references.md
+- docs/unified-recursive-defense-measures-v511-citations-and-references.md
 
 ## Contributing
 - Run validations locally (lint, typecheck, tests, vet:dependency) before opening PRs.
@@ -117,12 +127,8 @@ Look for an existing CONTRIBUTING.md in the repo; follow any repository-specific
 Report vulnerabilities following the guidance in SECURITY.md. Use the disclosure/contact details provided there.
 
 ## Roadmap & known limitations
-- The docs include implementation and research gaps, plus open tasks: see docs/unified-recursive-antigravity-protocol-v511-ecosystem-summary.md and docs/unified-recursive-antigravity-protocol-v500-implementation.md for roadmap items and known limitations.
+- The docs include implementation and research gaps, plus open tasks: see docs/unified-recursive-defense-measures-v511-ecosystem-summary.md and docs/unified-recursive-defense-measures-v500-implementation.md for roadmap items and known limitations.
 - The protocol assumes residual risk remains and recommends continuous monitoring and adaptive defenses.
 
-## License
-See LICENSE in the repository for licensing terms.
 
-## Maintainers / Contact
-Repository owner: zarma-dsk
-(Replace with team contact details or maintainer list as appropriate.)
+

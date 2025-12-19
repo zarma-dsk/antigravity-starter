@@ -3,7 +3,7 @@ import { JSDOM } from 'jsdom';
 
 // Server-side DOM implementation for DOMPurify
 const window = new JSDOM('').window;
-const purify = DOMPurify(window as unknown as Window);
+const purify = DOMPurify(window as any);
 
 export function sanitizeHtml(dirty: string): string {
   if (!dirty) return '';
