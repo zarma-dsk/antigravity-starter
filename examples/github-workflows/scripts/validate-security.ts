@@ -4,7 +4,6 @@
  */
 
 import fs from 'node:fs';
-import path from 'node:path';
 
 const REQUIRED_FILES = [
   'src/lib/sanitize.ts',

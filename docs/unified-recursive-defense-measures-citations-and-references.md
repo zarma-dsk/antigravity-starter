@@ -1,5 +1,5 @@
 # 📋 CITATIONS & RESEARCH REFERENCES
-## Unified Recursive Defense Measures 5.1.1 — Complete Citation Database
+## Unified Recursive Security 5.1.1 — Complete Citation Database
 ## December 17, 2025
 
 ---

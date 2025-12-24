@@ -1,10 +1,10 @@
-# Unified Recursive Defense Measures
+# Unified Recursive Security
 
 ## Security Policy
 
 ### Supported Versions
 
-The following versions of the Unified Recursive Defense Measures protocol are currently supported with security updates:
+The following versions of the Unified Recursive Security protocol are currently supported with security updates:
 
 | Version | Supported          | Notes |
 | ------- | ------------------ | ----- |
@@ -15,7 +15,7 @@ The following versions of the Unified Recursive Defense Measures protocol are cu
 
 ### Reporting a Vulnerability
 
-We take the security of this protocol and the ecosystem it protects seriously. If you have discovered a vulnerability in the **Unified Recursive Defense Measures** or its implementation examples, please report it to us immediately.
+We take the security of this protocol and the ecosystem it protects seriously. If you have discovered a vulnerability in the **Unified Recursive Security** or its implementation examples, please report it to us immediately.
 
 **DO NOT** open a public issue on GitHub for security vulnerabilities. Publicly disclosing a vulnerability can put the entire community at risk before a patch is available.
 

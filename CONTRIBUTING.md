@@ -1,10 +1,10 @@
-# Contributing to Unified Recursive Defense Measures
+# Contributing to Unified Recursive Security
 
-Thank you for your interest in contributing to the **Unified Recursive Defense Measures** protocol! We welcome contributions that help harden AI-assisted codebases and refine our security primitives.
+Thank you for your interest in contributing to the **Unified Recursive Security** protocol! We welcome contributions that help harden AI-assisted codebases and refine our security primitives.
 
 ## 🛡️ Security First Philosophy
 
-This project is not just a standard web application; it is a **security protocol**. All contributions must adhere to the **Unified Recursive Defense Measures v5.1.1** guidelines.
+This project is not just a standard web application; it is a **security protocol**. All contributions must adhere to the **Unified Recursive Security v5.1.1** guidelines.
 
 ### Critical Rules
 1.  **No Synthetic Vulnerabilities**: All code must pass the adversarial test suite.

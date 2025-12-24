@@ -1,13 +1,13 @@
-# Unified Recursive Defense Measures
+# Unified Recursive Security
 
-**Unified Recursive Defense Measures** (v5.1.1) is a research-driven, production-oriented security protocol and starter scaffold for Next.js applications. This repository packages the core defensive primitives, checks, and guidance used to harden AI-assisted codebases against hallucinations, supply-chain risks, and other AI-specific vulnerabilities.
+**Unified Recursive Security** (v5.1.1) is a research-driven, production-oriented security protocol and starter scaffold for Next.js applications. This repository packages the core defensive primitives, checks, and guidance used to harden AI-assisted codebases against hallucinations, supply-chain risks, and other AI-specific vulnerabilities.
 
 ## Quick overview
 - Purpose: Provide an opinionated, layered security scaffold for building web applications with AI-assisted development while minimizing synthetic/hallucination risks.
 - Audience: app authors, security engineers, reviewers, and maintainers who need a concise, research-backed checklist and implementation guidance.
 ## 📚 Documentation Ecosystem
 
-This repository contains a comprehensive documentation suite for the Unified Recursive Defense Measures, split into two main layers: the v5.0.0 Foundation and the v5.1.1 Research-Hardened Enhancement.
+This repository contains a comprehensive documentation suite for the Unified Recursive Security, split into two main layers: the v5.0.0 Foundation and the v5.1.1 Research-Hardened Enhancement.
 
 ### **Foundation Layer (v5.0.0 Base)**
 The core architectural principles and implementation patterns.
