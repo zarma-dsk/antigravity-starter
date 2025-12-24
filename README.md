@@ -121,7 +121,7 @@ This protocol synthesizes findings from 8+ academic and industry sources (Radwar
 - Keep diffs small: prefer targeted, reviewable commits (<100 LOC).
 - Follow the protocol’s iteration and threat-modeling rules (see docs/).
 
-Look for an existing CONTRIBUTING.md in the repo; follow any repository-specific process it prescribes.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guidelines and the repository-specific process.
 
 ## Security reporting
 Report vulnerabilities following the guidance in SECURITY.md. Use the disclosure/contact details provided there.

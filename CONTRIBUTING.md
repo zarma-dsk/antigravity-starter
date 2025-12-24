@@ -23,7 +23,7 @@ All Pull Requests (PRs) must follow this checklist:
 
 -   [ ] **Code Style**: Run `npm run lint` and `npm run format`.
 -   [ ] **Type Check**: Run `npm run typecheck` and ensure zero errors.
--   [ ] **Security Scan**: Run `npm run scan:security` and fix any critical findings.
+-   [ ] **Security Scan**: Run `npm run validate:security` and fix any critical findings.
 -   [ ] **Tests**: Add comprehensive tests for new features. For security fixes, add a regression test in `tests/adversarial/`.
 -   [ ] **Documentation**: Update irrelevant documentation in `docs/` if your change affects the protocol.
 

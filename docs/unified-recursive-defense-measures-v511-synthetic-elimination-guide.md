@@ -490,7 +490,7 @@ By adopting Unified Recursive Defense Measures 5.1.1, your team commits to:
 ### 📚 REFERENCE DOCUMENTS
 
 **Quick Reference:** unified-recursive-defense-measures-v511-quick-reference.md (1 hour read)
-**Implementation Guide:** antigravity-v511-implementation-guide.md (step-by-step)
+**Implementation Guide:** unified-recursive-defense-measures-v511-implementation-companion.md (step-by-step)
 **Research Alignment:** unified-recursive-defense-measures-v511-research-defense-matrix.md (8 papers)
 **Code Examples:** unified-recursive-defense-measures-v511-implementation-companion.md (real code)
 
