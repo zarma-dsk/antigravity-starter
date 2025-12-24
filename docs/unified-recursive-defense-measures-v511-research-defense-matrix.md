@@ -423,14 +423,14 @@ Each citation in this document has been verified for:
 
 ### APA Style (Academic)
 ```
-Unified Recursive Security Security Framework. (2025). Research Defense Matrix v5.1.1
+Unified Recursive Security Framework. (2025). Research Defense Matrix v5.1.1
 [Framework documentation]. Retrieved from GitHub repository.
 Citation sources: Rapid7 (2025), Microsoft MSRC (2025), CSET (2020).
 ```
 
 ### Chicago Style (Business)
 ```
-Unified Recursive Security Security Team. "Research Defense Matrix: CVE-2025-55182/55183/55184 
+Unified Recursive Security Team. "Research Defense Matrix: CVE-2025-55182/55183/55184 
 Defense Mapping." Version 5.1.1, December 17, 2025. Based on research from Rapid7,
 Microsoft Security Response Center, and industry threat intelligence.
 ```
