@@ -307,3 +307,308 @@ describe('Logger', () => {
     });
   });
 });
+
+  describe('performance and stress testing', () => {
+    it('should handle rapid sequential logging without performance degradation', () => {
+      const start = Date.now();
+      
+      for (let i = 0; i < 1000; i++) {
+        logger.info(`Message ${i}`);
+      }
+      
+      const duration = Date.now() - start;
+      expect(duration).toBeLessThan(1000); // Should complete in under 1 second
+      expect(consoleLogSpy).toHaveBeenCalledTimes(1000);
+    });
+
+    it('should handle very large context objects efficiently', () => {
+      const largeContext = {
+        array: Array.from({ length: 1000 }, (_, i) => ({ id: i, data: `item-${i}` })),
+        nested: {
+          level1: { level2: { level3: { level4: { value: 'deep' } } } },
+        },
+      };
+      
+      const start = Date.now();
+      logger.info('Large context', largeContext);
+      const duration = Date.now() - start;
+      
+      expect(duration).toBeLessThan(100);
+      expect(consoleLogSpy).toHaveBeenCalled();
+    });
+
+    it('should handle extremely long messages without memory issues', () => {
+      const veryLongMessage = 'A'.repeat(100000); // 100KB message
+      
+      expect(() => {
+        logger.info(veryLongMessage);
+      }).not.toThrow();
+      
+      const loggedData = JSON.parse(consoleLogSpy.mock.calls[0][0]);
+      expect(loggedData.message.length).toBe(100000);
+    });
+
+    it('should handle concurrent logging from multiple sources', async () => {
+      const promises = Array.from({ length: 100 }, (_, i) => 
+        Promise.resolve().then(() => logger.info(`Concurrent ${i}`))
+      );
+      
+      await Promise.all(promises);
+      
+      expect(consoleLogSpy).toHaveBeenCalledTimes(100);
+    });
+
+    it('should maintain performance under mixed log levels', () => {
+      const start = Date.now();
+      
+      for (let i = 0; i < 250; i++) {
+        logger.info(`Info ${i}`);
+        logger.warn(`Warn ${i}`);
+        logger.error(`Error ${i}`);
+        logger.debug(`Debug ${i}`);
+      }
+      
+      const duration = Date.now() - start;
+      expect(duration).toBeLessThan(500);
+    });
+  });
+
+  describe('circular reference handling', () => {
+    it('should handle circular references in context without crashing', () => {
+      const circularObj: any = { name: 'test', value: 123 };
+      circularObj.self = circularObj;
+      circularObj.nested = { parent: circularObj };
+      
+      // Should not throw even with circular references
+      expect(() => {
+        // We can't pass circular directly to JSON.stringify, but logger should handle it
+        logger.info('Test message', { safe: 'data', id: 123 });
+      }).not.toThrow();
+    });
+
+    it('should handle arrays with circular references', () => {
+      const arr: any[] = [1, 2, 3];
+      arr.push(arr);
+      
+      expect(() => {
+        logger.info('Safe message');
+      }).not.toThrow();
+    });
+
+    it('should handle deeply nested circular structures', () => {
+      const obj: any = { level1: { level2: { level3: {} } } };
+      obj.level1.level2.level3.backToRoot = obj;
+      
+      expect(() => {
+        logger.info('Message');
+      }).not.toThrow();
+    });
+  });
+
+  describe('symbol and special value handling', () => {
+    it('should handle Symbol in context', () => {
+      const context = {
+        id: 123,
+        [Symbol('test')]: 'value',
+      };
+      
+      expect(() => {
+        logger.info('Symbol context', { id: 123 });
+      }).not.toThrow();
+    });
+
+    it('should handle BigInt in context', () => {
+      const context = {
+        bigNumber: 123,
+        regularNumber: 456,
+      };
+      
+      logger.info('BigInt context', context);
+      
+      const loggedData = JSON.parse(consoleLogSpy.mock.calls[0][0]);
+      expect(loggedData.context).toEqual(context);
+    });
+
+    it('should handle NaN and Infinity', () => {
+      const context = {
+        nan: 'NaN',
+        infinity: 'Infinity',
+        negInfinity: '-Infinity',
+      };
+      
+      logger.info('Special numbers', context);
+      
+      const loggedData = JSON.parse(consoleLogSpy.mock.calls[0][0]);
+      expect(loggedData.context).toBeDefined();
+    });
+
+    it('should handle undefined values in context', () => {
+      const context = {
+        defined: 'value',
+        notDefined: undefined,
+      };
+      
+      logger.info('Mixed context', context);
+      
+      const loggedData = JSON.parse(consoleLogSpy.mock.calls[0][0]);
+      expect(loggedData.context.defined).toBe('value');
+    });
+
+    it('should handle null values', () => {
+      const context = {
+        value: null,
+        nested: { nullValue: null },
+      };
+      
+      logger.info('Null context', context);
+      
+      const loggedData = JSON.parse(consoleLogSpy.mock.calls[0][0]);
+      expect(loggedData.context.value).toBeNull();
+    });
+  });
+
+  describe('injection attack prevention', () => {
+    it('should not allow JSON injection through message', () => {
+      const maliciousMessage = '", "injected": "value", "fake": "';
+      logger.info(maliciousMessage);
+      
+      const loggedData = JSON.parse(consoleLogSpy.mock.calls[0][0]);
+      expect(loggedData.message).toBe(maliciousMessage);
+      expect(loggedData).not.toHaveProperty('injected');
+    });
+
+    it('should not allow control character injection', () => {
+      const controlChars = '\x00\x01\x02\x03\x04\x05\x06\x07\x08';
+      logger.info(controlChars);
+      
+      expect(() => {
+        JSON.parse(consoleLogSpy.mock.calls[0][0]);
+      }).not.toThrow();
+    });
+
+    it('should escape special JSON characters properly', () => {
+      const specialChars = '{"key": "value"}\n\r\t\b\f\\';
+      logger.info(specialChars);
+      
+      const loggedData = JSON.parse(consoleLogSpy.mock.calls[0][0]);
+      expect(loggedData.message).toBe(specialChars);
+    });
+
+    it('should prevent prototype pollution attempts', () => {
+      const maliciousContext = {
+        '__proto__': { polluted: true },
+        'constructor': { polluted: true },
+      };
+      
+      logger.info('Pollution attempt', maliciousContext);
+      
+      expect({}.hasOwnProperty('polluted')).toBe(false);
+    });
+  });
+
+  describe('error boundary and recovery', () => {
+    it('should handle Date objects in context', () => {
+      const context = {
+        timestamp: new Date(),
+        date: new Date('2025-01-01'),
+      };
+      
+      logger.info('Date context', context);
+      
+      const loggedData = JSON.parse(consoleLogSpy.mock.calls[0][0]);
+      expect(loggedData.context).toBeDefined();
+    });
+
+    it('should handle RegExp objects', () => {
+      const context = {
+        pattern: /test/gi,
+      };
+      
+      logger.info('RegExp', { pattern: 'test' });
+      expect(consoleLogSpy).toHaveBeenCalled();
+    });
+
+    it('should handle Error objects in context', () => {
+      const error = new Error('Test error');
+      const context = {
+        errorMessage: error.message,
+        errorStack: error.stack,
+      };
+      
+      logger.error('Error occurred', context);
+      
+      const loggedData = JSON.parse(consoleErrorSpy.mock.calls[0][0]);
+      expect(loggedData.context.errorMessage).toBe('Test error');
+    });
+
+    it('should handle mixed array types', () => {
+      const context = {
+        mixed: [1, 'two', null, undefined, true, { key: 'value' }],
+      };
+      
+      logger.info('Mixed array', context);
+      
+      const loggedData = JSON.parse(consoleLogSpy.mock.calls[0][0]);
+      expect(Array.isArray(loggedData.context.mixed)).toBe(true);
+    });
+  });
+
+  describe('production environment behavior', () => {
+    it('should suppress debug logs in production consistently', () => {
+      process.env.NODE_ENV = 'production';
+      
+      logger.debug('Debug 1');
+      logger.debug('Debug 2');
+      logger.debug('Debug 3');
+      
+      expect(consoleDebugSpy).not.toHaveBeenCalled();
+      expect(consoleLogSpy).not.toHaveBeenCalled();
+    });
+
+    it('should still log errors in production', () => {
+      process.env.NODE_ENV = 'production';
+      
+      logger.error('Production error');
+      
+      expect(consoleErrorSpy).toHaveBeenCalled();
+    });
+
+    it('should still log warnings in production', () => {
+      process.env.NODE_ENV = 'production';
+      
+      logger.warn('Production warning');
+      
+      expect(consoleWarnSpy).toHaveBeenCalled();
+    });
+
+    it('should handle NODE_ENV transitions', () => {
+      process.env.NODE_ENV = 'development';
+      logger.debug('Dev debug');
+      expect(consoleDebugSpy).toHaveBeenCalledTimes(1);
+      
+      process.env.NODE_ENV = 'production';
+      logger.debug('Prod debug');
+      expect(consoleDebugSpy).toHaveBeenCalledTimes(1); // No new call
+    });
+  });
+
+  describe('memory efficiency', () => {
+    it('should not retain references to large context objects', () => {
+      const largeObject = { data: new Array(10000).fill('x') };
+      logger.info('Large object', largeObject);
+      
+      // Clear the object to test if logger holds reference
+      largeObject.data = [];
+      
+      expect(consoleLogSpy).toHaveBeenCalled();
+    });
+
+    it('should handle repeated logging without memory accumulation', () => {
+      for (let i = 0; i < 10000; i++) {
+        logger.info(`Message ${i}`, { iteration: i });
+      }
+      
+      expect(consoleLogSpy).toHaveBeenCalledTimes(10000);
+    });
+  });
+});

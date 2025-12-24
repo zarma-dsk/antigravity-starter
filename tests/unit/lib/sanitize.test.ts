@@ -402,3 +402,364 @@ describe('sanitizeInput', () => {
     });
   });
 });
+
+  describe('advanced XSS attack vectors', () => {
+    it('should block SVG-based XSS attacks', () => {
+      const input = '<svg onload="alert(1)"><circle /></svg>';
+      const result = sanitizeHtml(input);
+      expect(result).not.toContain('<svg');
+      expect(result).not.toContain('onload');
+      expect(result).not.toContain('alert');
+    });
+
+    it('should block mutation XSS (mXSS) attempts', () => {
+      const input = '<noscript><p title="</noscript><img src=x onerror=alert(1)>">';
+      const result = sanitizeHtml(input);
+      expect(result).not.toContain('onerror');
+      expect(result).not.toContain('alert');
+    });
+
+    it('should block base64 encoded XSS', () => {
+      const input = '<a href="data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==">Click</a>';
+      const result = sanitizeHtml(input);
+      expect(result).not.toContain('data:');
+      expect(result).not.toContain('base64');
+    });
+
+    it('should block CSS expression attacks', () => {
+      const input = '<div style="width: expression(alert(1))">Test</div>';
+      const result = sanitizeHtml(input);
+      expect(result).not.toContain('expression');
+      expect(result).not.toContain('alert');
+    });
+
+    it('should block vbscript protocol', () => {
+      const input = '<a href="vbscript:msgbox(1)">Click</a>';
+      const result = sanitizeHtml(input);
+      expect(result).not.toContain('vbscript:');
+    });
+
+    it('should block import and meta tags', () => {
+      const input = '<meta http-equiv="refresh" content="0;url=javascript:alert(1)">';
+      const result = sanitizeHtml(input);
+      expect(result).not.toContain('<meta');
+      expect(result).not.toContain('javascript:');
+    });
+
+    it('should block HTML5 form action hijacking', () => {
+      const input = '<form action="javascript:alert(1)"><button>Submit</button></form>';
+      const result = sanitizeHtml(input);
+      expect(result).not.toContain('<form');
+      expect(result).not.toContain('javascript:');
+    });
+  });
+
+  describe('unicode and encoding attacks', () => {
+    it('should block homograph attacks', () => {
+      const input = '<a href="https://gооgle.com">Link</a>'; // Cyrillic 'о' instead of 'o'
+      const result = sanitizeHtml(input);
+      // Should still allow the link but preserve the actual characters
+      expect(result).toContain('Link');
+    });
+
+    it('should handle UTF-8 BOM', () => {
+      const input = '\uFEFF<p>Content</p>';
+      const result = sanitizeHtml(input);
+      expect(result).toContain('Content');
+    });
+
+    it('should handle zero-width characters', () => {
+      const input = '<p>Test\u200B\u200C\u200D\uFEFFContent</p>';
+      const result = sanitizeHtml(input);
+      expect(result).toContain('Content');
+    });
+
+    it('should handle RTL/LTR override characters', () => {
+      const input = '<p>Test\u202E\u202Dcontent</p>';
+      const result = sanitizeHtml(input);
+      expect(result).toContain('content');
+    });
+
+    it('should handle surrogate pairs correctly', () => {
+      const input = '<p>𝕏 𝕐 𝕑</p>'; // Mathematical bold letters
+      const result = sanitizeHtml(input);
+      expect(result).toContain('𝕏');
+    });
+
+    it('should handle mixed scripts', () => {
+      const input = '<p>Hello 世界 مرحبا мир</p>';
+      const result = sanitizeHtml(input);
+      expect(result).toContain('Hello');
+      expect(result).toContain('世界');
+      expect(result).toContain('مرحبا');
+      expect(result).toContain('мир');
+    });
+  });
+
+  describe('performance and large input handling', () => {
+    it('should handle very large HTML documents', () => {
+      const largeHtml = '<p>' + 'a'.repeat(100000) + '</p>';
+      const start = Date.now();
+      const result = sanitizeHtml(largeHtml);
+      const duration = Date.now() - start;
+      
+      expect(duration).toBeLessThan(1000); // Should complete quickly
+      expect(result).toContain('aaa');
+    });
+
+    it('should handle deeply nested structures efficiently', () => {
+      let deepHtml = 'content';
+      for (let i = 0; i < 100; i++) {
+        deepHtml = `<p>${deepHtml}</p>`;
+      }
+      
+      const result = sanitizeHtml(deepHtml);
+      expect(result).toContain('content');
+    });
+
+    it('should handle many siblings efficiently', () => {
+      const manySiblings = Array.from({ length: 1000 }, (_, i) => 
+        `<li>Item ${i}</li>`
+      ).join('');
+      const html = `<ul>${manySiblings}</ul>`;
+      
+      const start = Date.now();
+      const result = sanitizeHtml(html);
+      const duration = Date.now() - start;
+      
+      expect(duration).toBeLessThan(500);
+      expect(result).toContain('Item 0');
+      expect(result).toContain('Item 999');
+    });
+
+    it('should handle mixed content types efficiently', () => {
+      const mixedHtml = `
+        <p>Paragraph</p>
+        <strong>Bold</strong>
+        <em>Italic</em>
+        <code>Code</code>
+        <ul><li>Item</li></ul>
+        <a href="/test">Link</a>
+      `.repeat(100);
+      
+      const result = sanitizeHtml(mixedHtml);
+      expect(result).toContain('Paragraph');
+      expect(result).toContain('Bold');
+    });
+  });
+
+  describe('protocol and URL validation', () => {
+    it('should allow http and https protocols', () => {
+      const input = '<a href="https://example.com">HTTPS</a><a href="http://example.com">HTTP</a>';
+      const result = sanitizeHtml(input);
+      expect(result).toContain('https://example.com');
+      expect(result).toContain('http://example.com');
+    });
+
+    it('should block file protocol', () => {
+      const input = '<a href="file:///etc/passwd">File</a>';
+      const result = sanitizeHtml(input);
+      expect(result).not.toContain('file://');
+    });
+
+    it('should block ftp protocol', () => {
+      const input = '<a href="ftp://example.com">FTP</a>';
+      const result = sanitizeHtml(input);
+      expect(result).not.toContain('ftp://');
+    });
+
+    it('should handle protocol-relative URLs', () => {
+      const input = '<a href="//example.com">Link</a>';
+      const result = sanitizeHtml(input);
+      expect(result).toContain('//example.com');
+    });
+
+    it('should handle anchor links', () => {
+      const input = '<a href="#section">Jump</a>';
+      const result = sanitizeHtml(input);
+      expect(result).toContain('href="#section"');
+    });
+
+    it('should handle query parameters', () => {
+      const input = '<a href="/page?foo=bar&baz=qux">Link</a>';
+      const result = sanitizeHtml(input);
+      expect(result).toContain('foo=bar');
+    });
+  });
+
+  describe('sanitizeInput function', () => {
+    it('should handle non-string inputs gracefully', () => {
+      expect(sanitizeInput(123 as any)).toBe(123);
+      expect(sanitizeInput(null as any)).toBe(null);
+      expect(sanitizeInput(undefined as any)).toBe(undefined);
+      expect(sanitizeInput({} as any)).toEqual({});
+    });
+
+    it('should remove all null bytes', () => {
+      const input = 'test\x00value\x00here';
+      const result = sanitizeInput(input);
+      expect(result).toBe('testvaluehere');
+      expect(result).not.toContain('\x00');
+    });
+
+    it('should trim leading whitespace', () => {
+      const input = '   content';
+      expect(sanitizeInput(input)).toBe('content');
+    });
+
+    it('should trim trailing whitespace', () => {
+      const input = 'content   ';
+      expect(sanitizeInput(input)).toBe('content');
+    });
+
+    it('should trim both leading and trailing whitespace', () => {
+      const input = '   content   ';
+      expect(sanitizeInput(input)).toBe('content');
+    });
+
+    it('should preserve internal whitespace', () => {
+      const input = 'hello   world';
+      expect(sanitizeInput(input)).toBe('hello   world');
+    });
+
+    it('should handle empty string', () => {
+      expect(sanitizeInput('')).toBe('');
+    });
+
+    it('should handle whitespace-only string', () => {
+      expect(sanitizeInput('   ')).toBe('');
+    });
+
+    it('should handle tabs and newlines', () => {
+      const input = '\t\nhello\n\t';
+      expect(sanitizeInput(input)).toBe('hello');
+    });
+
+    it('should handle unicode whitespace', () => {
+      const input = '\u00A0hello\u00A0'; // Non-breaking space
+      const result = sanitizeInput(input);
+      expect(result.trim()).toBe('hello');
+    });
+
+    it('should handle very long inputs', () => {
+      const longInput = ' ' + 'a'.repeat(100000) + ' ';
+      const result = sanitizeInput(longInput);
+      expect(result.length).toBe(100000);
+      expect(result[0]).toBe('a');
+      expect(result[result.length - 1]).toBe('a');
+    });
+  });
+
+  describe('edge cases and malformed HTML', () => {
+    it('should handle unclosed tags', () => {
+      const input = '<p>Paragraph <strong>bold';
+      const result = sanitizeHtml(input);
+      expect(result).toContain('Paragraph');
+      expect(result).toContain('bold');
+    });
+
+    it('should handle mismatched tags', () => {
+      const input = '<p>Text</strong>';
+      const result = sanitizeHtml(input);
+      expect(result).toContain('Text');
+    });
+
+    it('should handle self-closing tags', () => {
+      const input = '<p>Line 1<br/>Line 2</p>';
+      const result = sanitizeHtml(input);
+      expect(result).toContain('Line 1');
+      expect(result).toContain('Line 2');
+    });
+
+    it('should handle comments', () => {
+      const input = '<p>Text</p><!-- comment --><p>More</p>';
+      const result = sanitizeHtml(input);
+      expect(result).toContain('Text');
+      expect(result).toContain('More');
+      expect(result).not.toContain('comment');
+    });
+
+    it('should handle CDATA sections', () => {
+      const input = '<p>Text</p><![CDATA[data]]><p>More</p>';
+      const result = sanitizeHtml(input);
+      expect(result).toContain('Text');
+      expect(result).toContain('More');
+    });
+
+    it('should handle DOCTYPE declarations', () => {
+      const input = '<!DOCTYPE html><p>Content</p>';
+      const result = sanitizeHtml(input);
+      expect(result).toContain('Content');
+      expect(result).not.toContain('DOCTYPE');
+    });
+
+    it('should handle XML declarations', () => {
+      const input = '<?xml version="1.0"?><p>Content</p>';
+      const result = sanitizeHtml(input);
+      expect(result).toContain('Content');
+    });
+  });
+
+  describe('attribute handling', () => {
+    it('should remove disallowed attributes from allowed tags', () => {
+      const input = '<p class="test" id="para" data-value="123">Text</p>';
+      const result = sanitizeHtml(input);
+      expect(result).not.toContain('class');
+      expect(result).not.toContain('id');
+      expect(result).not.toContain('data-value');
+      expect(result).toContain('Text');
+    });
+
+    it('should allow only specified attributes on links', () => {
+      const input = '<a href="/page" title="Link" class="link">Click</a>';
+      const result = sanitizeHtml(input);
+      expect(result).toContain('href="/page"');
+      expect(result).not.toContain('title');
+      expect(result).not.toContain('class');
+    });
+
+    it('should handle empty attributes', () => {
+      const input = '<a href="">Empty</a>';
+      const result = sanitizeHtml(input);
+      expect(result).toContain('Empty');
+    });
+
+    it('should handle attributes without values', () => {
+      const input = '<p contenteditable>Editable</p>';
+      const result = sanitizeHtml(input);
+      expect(result).not.toContain('contenteditable');
+      expect(result).toContain('Editable');
+    });
+  });
+
+  describe('real-world attack scenarios', () => {
+    it('should block polyglot payloads', () => {
+      const input = 'javascript:"/*\'/*`/*--></noscript></title></textarea></style></template></noembed></script><html \" onmouseover=/*&lt;svg/*/onload=alert()//>',
+      const result = sanitizeHtml(input);
+      expect(result).not.toContain('javascript:');
+      expect(result).not.toContain('onmouseover');
+      expect(result).not.toContain('onload');
+      expect(result).not.toContain('alert');
+    });
+
+    it('should block template injection', () => {
+      const input = '<template><script>alert(1)</script></template>';
+      const result = sanitizeHtml(input);
+      expect(result).not.toContain('<template>');
+      expect(result).not.toContain('alert');
+    });
+
+    it('should block DOM clobbering attempts', () => {
+      const input = '<form name="getElementById"><input name="getElementById"></form>';
+      const result = sanitizeHtml(input);
+      expect(result).not.toContain('<form');
+    });
+
+    it('should block CSS import with XSS', () => {
+      const input = '<style>@import url("javascript:alert(1)");</style>';
+      const result = sanitizeHtml(input);
+      expect(result).not.toContain('<style>');
+      expect(result).not.toContain('javascript:');
+    });
+  });
+});

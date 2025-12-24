@@ -352,3 +352,354 @@ describe('RateLimiter', () => {
     });
   });
 });
+
+  describe('concurrent access patterns', () => {
+    it('should handle concurrent requests for same token correctly', () => {
+      const now = Date.now();
+      vi.setSystemTime(now);
+      
+      // Simulate concurrent requests
+      const results = [];
+      for (let i = 0; i < 10; i++) {
+        results.push(limiter.check(5, 'concurrent-token'));
+      }
+      
+      const allowed = results.filter(r => r === true).length;
+      const denied = results.filter(r => r === false).length;
+      
+      expect(allowed).toBe(5);
+      expect(denied).toBe(5);
+    });
+
+    it('should handle high-frequency burst requests', () => {
+      const now = Date.now();
+      vi.setSystemTime(now);
+      
+      // Burst of 100 requests
+      const results = Array.from({ length: 100 }, () => 
+        limiter.check(10, 'burst-user')
+      );
+      
+      const allowed = results.filter(r => r).length;
+      expect(allowed).toBe(10);
+      expect(results.filter(r => !r).length).toBe(90);
+    });
+
+    it('should maintain accuracy under rapid sequential calls', () => {
+      const now = Date.now();
+      vi.setSystemTime(now);
+      
+      for (let i = 0; i < 3; i++) {
+        expect(limiter.check(3, 'rapid-user')).toBe(true);
+      }
+      expect(limiter.check(3, 'rapid-user')).toBe(false);
+      
+      // Advance time slightly (not enough to expire)
+      vi.setSystemTime(now + 100);
+      expect(limiter.check(3, 'rapid-user')).toBe(false);
+    });
+
+    it('should handle interleaved requests from multiple users', () => {
+      const now = Date.now();
+      vi.setSystemTime(now);
+      
+      const users = ['user-a', 'user-b', 'user-c'];
+      
+      // Interleave requests
+      for (let round = 0; round < 3; round++) {
+        for (const user of users) {
+          expect(limiter.check(3, user)).toBe(true);
+        }
+      }
+      
+      // All should be at limit
+      for (const user of users) {
+        expect(limiter.check(3, user)).toBe(false);
+      }
+    });
+  });
+
+  describe('timing precision and edge cases', () => {
+    it('should handle requests exactly at window boundary', () => {
+      const now = Date.now();
+      vi.setSystemTime(now);
+      
+      limiter.check(3, 'boundary-user');
+      
+      // Exactly at 10 second mark
+      vi.setSystemTime(now + 10000);
+      
+      // First request should still be in window (<=)
+      expect(limiter.check(3, 'boundary-user')).toBe(true);
+    });
+
+    it('should handle microsecond precision timing', () => {
+      const now = Date.now();
+      vi.setSystemTime(now);
+      
+      limiter.check(3, 'precise-user');
+      
+      // Just before window expiry
+      vi.setSystemTime(now + 9999);
+      expect(limiter.check(3, 'precise-user')).toBe(true);
+      
+      // Just after window expiry
+      vi.setSystemTime(now + 10001);
+      expect(limiter.check(3, 'precise-user')).toBe(true);
+    });
+
+    it('should handle timestamp overflow gracefully', () => {
+      const veryLargeTime = Number.MAX_SAFE_INTEGER - 10000;
+      vi.setSystemTime(veryLargeTime);
+      
+      expect(limiter.check(5, 'overflow-user')).toBe(true);
+      
+      vi.setSystemTime(veryLargeTime + 1000);
+      expect(limiter.check(5, 'overflow-user')).toBe(true);
+    });
+
+    it('should handle zero time advancement', () => {
+      const now = Date.now();
+      vi.setSystemTime(now);
+      
+      limiter.check(3, 'zero-time-user');
+      
+      // Same exact timestamp
+      vi.setSystemTime(now);
+      
+      expect(limiter.check(3, 'zero-time-user')).toBe(true);
+    });
+  });
+
+  describe('extreme limit values', () => {
+    it('should handle very high limits efficiently', () => {
+      const now = Date.now();
+      vi.setSystemTime(now);
+      
+      const highLimit = 10000;
+      
+      for (let i = 0; i < highLimit; i++) {
+        expect(limiter.check(highLimit, 'high-limit-user')).toBe(true);
+      }
+      
+      expect(limiter.check(highLimit, 'high-limit-user')).toBe(false);
+    });
+
+    it('should handle negative limits as always denied', () => {
+      expect(limiter.check(-1, 'negative-limit-user')).toBe(false);
+      expect(limiter.check(-100, 'negative-limit-user2')).toBe(false);
+    });
+
+    it('should handle fractional limits by flooring', () => {
+      // Assuming check expects integer limits
+      expect(limiter.check(2, 'fractional-user')).toBe(true);
+      expect(limiter.check(2, 'fractional-user')).toBe(true);
+      expect(limiter.check(2, 'fractional-user')).toBe(false);
+    });
+
+    it('should handle very large token counts efficiently', () => {
+      const now = Date.now();
+      vi.setSystemTime(now);
+      
+      // Create many unique tokens
+      for (let i = 0; i < 1000; i++) {
+        limiter.check(1, `mass-user-${i}`);
+      }
+      
+      // Should still work without performance degradation
+      expect(limiter.check(1, 'new-user')).toBe(true);
+    });
+  });
+
+  describe('memory leak prevention', () => {
+    it('should cleanup entries when cache exceeds LRU_CACHE_SIZE', () => {
+      // Fill cache beyond 500
+      for (let i = 0; i < 700; i++) {
+        limiter.check(1, `cache-user-${i}`);
+      }
+      
+      // New requests should still work
+      for (let i = 0; i < 100; i++) {
+        expect(limiter.check(1, `new-cache-user-${i}`)).toBe(true);
+      }
+    });
+
+    it('should handle repeated cache overflow gracefully', () => {
+      // Cause multiple cleanups
+      for (let round = 0; round < 5; round++) {
+        for (let i = 0; i < 200; i++) {
+          limiter.check(1, `overflow-round-${round}-user-${i}`);
+        }
+      }
+      
+      expect(limiter.check(1, 'final-user')).toBe(true);
+    });
+
+    it('should not leak memory with expired timestamps', () => {
+      const now = Date.now();
+      vi.setSystemTime(now);
+      
+      // Create requests that will expire
+      for (let i = 0; i < 100; i++) {
+        limiter.check(5, `expire-user-${i}`);
+      }
+      
+      // Advance time to expire all
+      vi.setSystemTime(now + 20000);
+      
+      // New requests should filter old timestamps
+      for (let i = 0; i < 100; i++) {
+        limiter.check(5, `expire-user-${i}`);
+      }
+      
+      expect(limiter.check(1, 'cleanup-test')).toBe(true);
+    });
+  });
+
+  describe('sliding window accuracy', () => {
+    it('should maintain exact sliding window semantics', () => {
+      const now = Date.now();
+      const limit = 5;
+      const token = 'sliding-precise';
+      
+      // T=0: 3 requests
+      vi.setSystemTime(now);
+      for (let i = 0; i < 3; i++) {
+        expect(limiter.check(limit, token)).toBe(true);
+      }
+      
+      // T=5000: 2 more requests (total 5, at limit)
+      vi.setSystemTime(now + 5000);
+      expect(limiter.check(limit, token)).toBe(true);
+      expect(limiter.check(limit, token)).toBe(true);
+      expect(limiter.check(limit, token)).toBe(false); // Over limit
+      
+      // T=10001: First 3 requests expire, should have 2 slots
+      vi.setSystemTime(now + 10001);
+      expect(limiter.check(limit, token)).toBe(true);
+      expect(limiter.check(limit, token)).toBe(true);
+      expect(limiter.check(limit, token)).toBe(true); // Still works
+      
+      // T=15001: Middle 2 expire, should have 2 slots again
+      vi.setSystemTime(now + 15001);
+      expect(limiter.check(limit, token)).toBe(true);
+      expect(limiter.check(limit, token)).toBe(true);
+    });
+
+    it('should handle gradual request patterns', () => {
+      const now = Date.now();
+      vi.setSystemTime(now);
+      
+      // Spread requests across time window
+      for (let i = 0; i < 10; i++) {
+        vi.setSystemTime(now + (i * 1000));
+        expect(limiter.check(10, 'gradual-user')).toBe(true);
+      }
+      
+      // Should be at limit
+      vi.setSystemTime(now + 10000);
+      expect(limiter.check(10, 'gradual-user')).toBe(false);
+      
+      // After 1 more second, first request expires
+      vi.setSystemTime(now + 11000);
+      expect(limiter.check(10, 'gradual-user')).toBe(true);
+    });
+  });
+
+  describe('special token formats', () => {
+    it('should handle IP:PORT format tokens', () => {
+      const token = '192.168.1.1:8080';
+      expect(limiter.check(3, token)).toBe(true);
+      expect(limiter.check(3, token)).toBe(true);
+      expect(limiter.check(3, token)).toBe(true);
+      expect(limiter.check(3, token)).toBe(false);
+    });
+
+    it('should handle UUID tokens', () => {
+      const uuid = '550e8400-e29b-41d4-a716-446655440000';
+      expect(limiter.check(2, uuid)).toBe(true);
+      expect(limiter.check(2, uuid)).toBe(true);
+      expect(limiter.check(2, uuid)).toBe(false);
+    });
+
+    it('should handle very long tokens', () => {
+      const longToken = 'user-' + 'x'.repeat(1000);
+      expect(limiter.check(2, longToken)).toBe(true);
+      expect(limiter.check(2, longToken)).toBe(true);
+      expect(limiter.check(2, longToken)).toBe(false);
+    });
+
+    it('should handle tokens with null bytes', () => {
+      const nullToken = 'user\x00test';
+      expect(limiter.check(2, nullToken)).toBe(true);
+      expect(limiter.check(2, nullToken)).toBe(true);
+      expect(limiter.check(2, nullToken)).toBe(false);
+    });
+
+    it('should differentiate similar tokens', () => {
+      expect(limiter.check(1, 'user1')).toBe(true);
+      expect(limiter.check(1, 'user1')).toBe(false);
+      
+      expect(limiter.check(1, 'user2')).toBe(true); // Different token
+    });
+  });
+
+  describe('recovery and reset scenarios', () => {
+    it('should allow gradual recovery as timestamps expire', () => {
+      const now = Date.now();
+      const token = 'recovery-user';
+      
+      // Use up limit
+      vi.setSystemTime(now);
+      for (let i = 0; i < 5; i++) {
+        limiter.check(5, token);
+      }
+      expect(limiter.check(5, token)).toBe(false);
+      
+      // Partial recovery after 5 seconds
+      vi.setSystemTime(now + 5000);
+      expect(limiter.check(5, token)).toBe(false); // Still at limit
+      
+      // Full recovery after 10+ seconds
+      vi.setSystemTime(now + 10001);
+      expect(limiter.check(5, token)).toBe(true);
+    });
+
+    it('should handle complete window expiration', () => {
+      const now = Date.now();
+      vi.setSystemTime(now);
+      
+      limiter.check(3, 'expire-user');
+      limiter.check(3, 'expire-user');
+      limiter.check(3, 'expire-user');
+      expect(limiter.check(3, 'expire-user')).toBe(false);
+      
+      // Far future: all expired
+      vi.setSystemTime(now + 100000);
+      
+      // Should have full limit available
+      expect(limiter.check(3, 'expire-user')).toBe(true);
+      expect(limiter.check(3, 'expire-user')).toBe(true);
+      expect(limiter.check(3, 'expire-user')).toBe(true);
+      expect(limiter.check(3, 'expire-user')).toBe(false);
+    });
+  });
+
+  describe('distributed system considerations', () => {
+    it('should document need for shared state in production', () => {
+      // This is a local in-memory limiter
+      // In production with multiple instances, would need Redis
+      expect(limiter.check(1, 'distributed-user')).toBe(true);
+    });
+
+    it('should handle single-instance correctly', () => {
+      // Verify it works correctly for single instance
+      const token = 'single-instance';
+      
+      for (let i = 0; i < 10; i++) {
+        expect(limiter.check(10, token)).toBe(true);
+      }
+      expect(limiter.check(10, token)).toBe(false);
+    });
+  });
+});

@@ -271,3 +271,127 @@ describe('Security Validation Script', () => {
     });
   });
 });
+
+  describe('edge case scenarios', () => {
+    it('should handle concurrent validation calls', async () => {
+      fsExistsSyncSpy.mockReturnValue(true);
+      
+      const validations = Array.from({ length: 10 }, () => 
+        import('../../../scripts/validate-security').catch(() => {})
+      );
+      
+      await Promise.all(validations);
+      
+      expect(consoleLogSpy).toHaveBeenCalled();
+    });
+
+    it('should validate with partial file availability', async () => {
+      fsExistsSyncSpy.mockImplementation((path: string) => {
+        // Only some files exist
+        return path.includes('sanitize') || path.includes('logger');
+      });
+      
+      try {
+        await import('../../../scripts/validate-security');
+        expect.fail('Should have thrown');
+      } catch (e: any) {
+        expect(e.message).toContain('code 1');
+      }
+      
+      expect(consoleErrorSpy).toHaveBeenCalled();
+    });
+
+    it('should handle filesystem errors gracefully', async () => {
+      fsExistsSyncSpy.mockImplementation(() => {
+        throw new Error('Filesystem error');
+      });
+      
+      await expect(
+        import('../../../scripts/validate-security')
+      ).rejects.toThrow();
+    });
+
+    it('should validate file paths are relative', () => {
+      const requiredFiles = [
+        'src/lib/sanitize.ts',
+        'src/lib/rate-limit.ts',
+        'src/lib/logger.ts',
+        '.github/workflows/ci.yml'
+      ];
+      
+      requiredFiles.forEach(file => {
+        expect(file).not.toMatch(/^\/|^\\/); // Not absolute path
+        expect(file).not.toMatch(/\.\./); // No parent directory traversal
+      });
+    });
+  });
+
+  describe('security file integrity', () => {
+    it('should verify sanitize.ts exports required functions', () => {
+      const content = fs.readFileSync('src/lib/sanitize.ts', 'utf-8');
+      expect(content).toContain('export function sanitizeHtml');
+      expect(content).toContain('export function sanitizeInput');
+    });
+
+    it('should verify rate-limit.ts exports limiter', () => {
+      const content = fs.readFileSync('src/lib/rate-limit.ts', 'utf-8');
+      expect(content).toContain('export const limiter');
+      expect(content).toContain('class RateLimiter');
+    });
+
+    it('should verify logger.ts exports logger instance', () => {
+      const content = fs.readFileSync('src/lib/logger.ts', 'utf-8');
+      expect(content).toContain('export const logger');
+      expect(content).toContain('class Logger');
+    });
+
+    it('should verify files use TypeScript', () => {
+      ['src/lib/sanitize.ts', 'src/lib/rate-limit.ts', 'src/lib/logger.ts'].forEach(file => {
+        expect(file).toMatch(/\.ts$/);
+        const content = fs.readFileSync(file, 'utf-8');
+        expect(content).toMatch(/:\s*(string|number|boolean|void)/); // Type annotations
+      });
+    });
+
+    it('should verify files have proper exports', () => {
+      const files = [
+        'src/lib/sanitize.ts',
+        'src/lib/rate-limit.ts',
+        'src/lib/logger.ts'
+      ];
+      
+      files.forEach(file => {
+        const content = fs.readFileSync(file, 'utf-8');
+        expect(content).toContain('export');
+      });
+    });
+  });
+
+  describe('validation completeness', () => {
+    it('should check for all critical security primitives', () => {
+      const requiredPrimitives = [
+        'sanitize', // Input sanitization
+        'rate-limit', // Rate limiting
+        'logger', // Structured logging
+      ];
+      
+      requiredPrimitives.forEach(primitive => {
+        const exists = fs.existsSync(`src/lib/${primitive}.ts`);
+        expect(exists).toBe(true);
+      });
+    });
+
+    it('should verify no typos in required file paths', () => {
+      const requiredFiles = [
+        'src/lib/sanitize.ts',
+        'src/lib/rate-limit.ts',
+        'src/lib/logger.ts',
+      ];
+      
+      requiredFiles.forEach(file => {
+        expect(file).not.toContain('  '); // No double spaces
+        expect(file).not.toMatch(/\s$/); // No trailing spaces
+      });
+    });
+  });
+});
