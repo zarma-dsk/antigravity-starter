@@ -1,4 +1,9 @@
 /**
+ * Simple Token Bucket Rate Limiter
+ * Note: In a production environment with multiple instances (serverless/containers),
+ * you should use Redis (e.g., Upstash) to share state.
+ */
+
  * Rate Limiter Implementation
  *
  * Supports two modes:
@@ -17,6 +22,11 @@ interface RateLimitConfig {
   uniqueTokenPerInterval: number; // max requests per interval
 }
 
+const LRU_CACHE_SIZE = 500;
+
+class RateLimiter {
+  private tokens: Map<string, number[]>;
+  private config: RateLimitConfig;
 // Stub interfaces for Redis/Upstash to allow the logic to exist without the heavy dependencies
 interface RedisConfig {
   url: string;
@@ -109,6 +119,14 @@ class RateLimiter {
    * Check if a token is rate limited.
    * Returns true if allowed, false if limited.
    */
+  check(limit: number, token: string): boolean {
+    const now = Date.now();
+    const windowStart = now - this.config.interval;
+
+    let timestamps = this.tokens.get(token) || [];
+    
+    // Filter out timestamps older than the window
+    timestamps = timestamps.filter((t) => t > windowStart);
   async check(limit: number, token: string): Promise<boolean> {
     // 1. Redis Mode
     if (this.redisLimiter) {
@@ -147,6 +165,11 @@ class RateLimiter {
     }
 
     timestamps.push(now);
+    this.tokens.set(token, timestamps);
+
+    // Basic cleanup to prevent memory leaks (LRU-like behavior would be better)
+    if (this.tokens.size > LRU_CACHE_SIZE) {
+        // Clear old entries naively if too big
 
     // LRU Optimization
     this.tokens.delete(token);
@@ -163,6 +186,8 @@ class RateLimiter {
         }
     }
 
+    return true;
+  }
     // set() updates recency and handles eviction if full
     this.tokens.set(token, timestamps);
 
@@ -181,6 +206,7 @@ class RateLimiter {
 // Default limiter: 10 requests per 10 seconds per user/IP
 // WARNING: This is an in-memory limiter. It will not share state across Next.js serverless functions or containers.
 // For production, replace with: https://vercel.com/docs/functions/edge-middleware/middleware-helper#rate-limit
+console.warn('⚠️  Using in-memory rate limiter. This is NOT safe for production environments with multiple instances.');
 if (!process.env.KV_REST_API_URL) {
   console.warn('⚠️  Using in-memory rate limiter. This is NOT safe for production environments with multiple instances.');
 }
